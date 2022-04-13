@@ -1,4 +1,8 @@
-## Ama Controller
-Ama Controller is an `ama` component that distibute the execution of modules to `amad` (ama processor component) nodes.
+## amacontroller
+**amacontroller** is an `Ama-Framework` component that distibute the execution of modules to `amaprocessor` nodes.
+
+>    Please do not use Ama-Framework in military or secret service organizations,
+>		      or for illegal purposes.
+
 
 Good Luck! - glozanoa
