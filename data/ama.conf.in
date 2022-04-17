@@ -1,23 +1,56 @@
 [AMACONTROLLER]
-RESOURCES_DIR='@AMACONTROLLER_RESOURCES_DIR@'
-RESOURCES_GIT_SSHKEY='path/to/git/sshkey'
+HOST=127.0.0.1
 PORT=1317
 BACKUP_NODE=None
 BACKUP_NODE_PORT=1317
+DATA_BARE_REPO='@AMACONTROLLER_DATA_BAREREPO@'
+DATA_REPO='@AMACONTROLLER_DATA_REPO@'
+LOGFILE='@AMACONTROLLER_LOGFILE@'
 
 [AMADB]
 HOST=127.0.0.1
 PORT=1319
 DATABASE_NAME='ama'
 
-[AMAPROCESSOR]
-PORT=1318
+# Define your amaprocessor nodes inside NODES section
+# put general configurations (for all nodes) in NODES section
+# you can override this general configuration for an specific amaprocessor node in its definition section
 
-# Define your amaprocessors nodes in this section
-[AMAPROCESSOR.NODES]
-[AMAPROCESSOR.NODES.cracker01]
-MAX_CONCURRENT_PROCESS=8
+[NODES]
+DATA_REPO='@AMAPROCESSOR_DATA_REPO@'
+WORKSPACES_DIR='@AMAPROCESSOR_WORKSPACES_DIR@'
+LOGFILE='@AMAPROCESSOR_LOGFILE@'
+MAX_CONCURRENT_PROCESSES=8
 MAX_QUEUE_SIZE=100
 
-[AMAPROCESSOR.PARTITIONS]
-# define your partitions of nodes in this section
+# # definition section of miner01 amaprocessor node
+# [NODES.miner01]
+# HOST=192.168.1.10 # your don't need to specify the node IP, by default it resolves using /etc/hosts file and the node name
+# # overriding MAX_QUEUE_SIZE and MAX_CURRENT_PROCESSES general configuration defined in NODES section
+# MAX_CONCURRENT_PROCESSES=16
+# MAX_QUEUE_SIZE=300
+
+# # Multinode definition: you don't need to create a section for each node.
+# # if yout nodes have consecutive indexes, you can user this notation: tiger[01-10] (tiger01, tiger02, ..., tiger10)
+# [NODES.tiger[01-10]]
+# MAX_CONCURRENT_PROCESSES=10
+
+# # if your nodes do not have consecutive indexes, supply their indexes split by comma.
+# [NODES.wolf[01,03,11]]
+# MAX_CONCURRENT_PROCESSES=10
+
+# # if some if your nodes have consecutive index and others no, then you can define as follow:
+# [NODES.wolf[02,05,10-15]]
+# MAX_CONCURRENT_PROCESSES=10
+
+# # Partitions help you to organize your nodes, and submit job to a group of them
+# [PARTITIONS]
+
+# # defining partition ue-west with tiger[01-05] (tiger01, tiger02, ..., tiger05) and wolf[01,03] nodes
+# [PARTITIONS.ue-west]
+# NODES=tiger[01-05],wolf[01,03]
+
+# # defining partition ue-west00 with tiger[01-05] (tiger01, tiger02, ..., tiger05) and wolf[01,03] nodes
+# [PARTITIONS.scruz]
+# NODES=tiger[01-10],wolf[01,03,10-14]
+# EXCLUDE=tiger04,wolf12 # exclude nodes tiger04 and wolf12 of defined NODES

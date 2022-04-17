@@ -27,24 +27,9 @@ set(AMACONTROLLER_CONFIG_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/data/ama.conf.in")
 configure_file(${AMACONTROLLER_CONFIG_FILE_IN} ${AMACONTROLLER_CONFIG_FILE})
 install(FILES ${AMACONTROLLER_CONFIG_FILE} DESTINATION /etc PERMISSIONS OWNER_WRITE OWNER_READ)
 
-
-# AMACONTROLLER_SHARE_DIR structure
-# AMACONTROLLER_
-# |- resources (git repository of registered resources [wordlists, masks, rules, ...])
-# |  |- wordlists
-# |  |- masks
-# |  |- rules
-# |
-# |- workspaces
-# |  |- WORKSPACE_ID
-# |  |  |- JOB_ID
-# |  |  |  |- OUTPUT FILES (generated files by amaprocessor nodes)
-
-
-set(AMACONTROLLER_SHARE_DIR "/usr/share/${PROJECT_NAME}" CACHE STRING "")
-set(AMACONTROLLER_RESOURCES_DIR "${AMACONTROLLER_SHARE_DIR}/resources" CACHE STRING "")
-set(AMACONTROLLER_WORDLISTS_DIR "${AMACONTROLLER_RESOURCES_DIR}/wordlists" CACHE STRING "")
-
+# logging
+set(AMA_LOGGING_DIR "/var/log/ama")
+set(AMACONTROLLER_LOGFILE "${AMA_LOGGING_DIR}/amacontroller.log")
 
 # find_package(Boost COMPONENTS program_options REQUIRED)
 # if(CMAKE_BUILD_PYBINDS)
@@ -90,10 +75,41 @@ add_subdirectory(proto) # generate amacontroller_cxx_protos library
 #   ${PROJECT_SOURCE_DIR}/include/
 # )
 
+
+# amacontroller - data repositories
+# AMACONTROLLER_DATA_DIR structure
+# data
+# |- wordlists
+# |- masks
+# |- rules
+
+set(AMA_HOME "/var/lib/ama" CACHE STRING "Home directory of 'ama' user")
+set(AMACONTROLLER_DATA_BAREREPO "/usr/share/${PROJECT_NAME}/data.git" CACHE STRING "Ama centralized bare git data repository")
+set(AMACONTROLLER_DATA_REPO "${AMACONTROLLER_HOME}/data")
+
+option(CMAKE_CREATE_AMA_USER "Create 'ama' user" ON)
+option(CMAKE_INIT_DATA_REPOSITORIES "Init amacontroller data repositories" ON)
+
+if(CMAKE_INIT_DATA_REPOSITORIES)
+  find_library(Python3 COMPONENTS Interpreter REQUIRED) # python3 is required to initializing data repositories
+  set(DATAREPOS_PYSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/utils/datarepos.py")
+
+  execute_process(COMMAND ${Python3_EXECUTABLE} -m pip install -r ${CMAKE_CURRENT_SOURCE_DIR}/utils/requirements.py)
+  if(CMAKE_CREATE_AMA_USER)
+    install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${DATAREPOS_PYSCRIPT} --home ${AMA_HOME} -d ${AMACONTROLLER_DATA_REPO} -b ${AMACONTROLLER_DATA_BAREREPO}")
+  else()
+    install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${DATAREPOS_PYSCRIPT} --home ${AMA_HOME} -d ${AMACONTROLLER_DATA_REPO} -b ${AMACONTROLLER_DATA_BAREREPO} --no-create-user")
+  endif()
+endif()
+
+
+# amaprocessor default configuration
+set(AMAPROCESSOR_DATA_REPO "${AMA_HOME}/data")
+set(AMAPROCESSOR_WORKSPACES_DIR "${AMAPROCESSOR_DATA_DIR}/workspaces")
+set(AMAPROCESSOR_LOGFILE "${AMA_LOGGING_DIR}/amaprocessor.log")
+
 # tests
 if(CMAKE_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
-
-add_subdirectory(data)
